@@ -4,6 +4,7 @@ from matplotlib.animation import FuncAnimation
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+SEED = 42
 
 def k_means(vectors, k, max_iter=1000, tol=0.01):
     """
@@ -85,34 +86,76 @@ def k_means(vectors, k, max_iter=1000, tol=0.01):
     
     return cost, assignments, centroids, costs, history
 
-def load_mnist(size=2000):
+def cluster_assigner(vector, centroids): # takes unseen vector and returns it's nearest centroid
+    
+    #Helper function to compute squared distance
+    def dist_squared(u, v):
+        return sum((u[i] - v[i])**2 for i in range(len(u)))
+
+    min_dist = float('inf')
+    min_idx = -1
+    for i, c in enumerate(centroids):
+        squared_distance = dist_squared(vector, c)
+        if squared_distance < min_dist:
+            min_dist = squared_distance
+            min_idx = i
+    return min_idx #  returns minimum index, aligns with cluster map
+
+def validate_new(vector, centroids, cluster_digit_map, true_value):
+    cluster_idx = cluster_assigner(vector, centroids)
+    pred_digit = cluster_digit_map.get(cluster_idx, -1)
+    return pred_digit == true_value
+
+def load_mnist(size=4000):
     mnist = fetch_openml('mnist_784', version=1, as_frame=False)
     X, y = mnist["data"], mnist["target"].astype(int)
 
     idx = np.random.choice(len(X), size, replace=False)
     return X[idx], y[idx]
 
+def generate_maps(k):
+    cluster_labels = [[] for i in range(k)]
+    for (vec, cluster), label in zip(assignments, y_sample):
+        cluster_labels[cluster].append(label)
+
+    cluster_digit_map = {}
+    for i in range(k):
+        if cluster_labels[i]:
+            cluster_digit_map[i] = np.argmax(np.bincount(np.array(cluster_labels[i])))
+        else:
+            cluster_digit_map[i] = -1
+
+    y_pred = [cluster_digit_map[cluster] for _, cluster in assignments]
+    return cluster_digit_map, y_pred
+
+def build_cluster_digit_map(assignments, labels, k):
+    cluster_labels = [[] for _ in range(k)]
+    for(_, cluster), label in zip(assignments, labels):
+        cluster_labels[cluster].append(label)
+        
+    cluster_digit_map = {}
+    for i in range(k):
+        if cluster_labels[i]:
+            cluster_digit_map[i] = np.argmax(np.bincount(np.array(cluster_labels[i])))
+        else:
+            cluster_digit_map[i] = -1
+    return cluster_digit_map
+def predict(X, centroids, cluster_digit_map):
+    preds = []
+    for vec in X:
+        cluster = cluster_assigner(vec, centroids)
+        digit = cluster_digit_map.get(cluster, -1)
+        preds.append(digit)
+    return preds
+# evaluate the model on unseen data
+
 X_sample, y_sample = load_mnist()
-
 cost, assignments, centroids, costs, history = k_means(X_sample.tolist(), k=10)
+X_train, X_test, y_train, y_test = train_test_split(X_sample, y_sample, test_size=0.25, random_state=SEED)
+cluster_digit_map = build_cluster_digit_map(assignments, y_train, k=10)
 
-
-k = 10
-cluster_labels = [[] for i in range(k)]
-for (vec, cluster), label in zip(assignments, y_sample):
-    cluster_labels[cluster].append(label)
-
-cluster_digit_map = {}
-for i in range(k):
-    if cluster_labels[i]:
-        cluster_digit_map[i] = np.argmax(np.bincount(np.array(cluster_labels[i])))
-    else:
-        cluster_digit_map[i] = -1
-
-y_pred = [cluster_digit_map[cluster] for _, cluster in assignments]
-
-# Compare the predicted digits to the true labels and compute accuracy
-print("K-means accuracy:", accuracy_score(y_sample, y_pred))
+y_test_pred = predict(X_test, centroids, cluster_digit_map)
+print("Accuracy:", accuracy_score(y_test, y_test_pred))
 
 
 
