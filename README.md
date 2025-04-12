@@ -6,8 +6,10 @@ This project explores various different ways to classify digits on the MNIST dat
 ## Implemented from scratch (More added later):
  - K means 
 
+## Implemented w/ Scikit learn:
+- Least Squares classifier
+
 ## Coming soon
- - Least Squares classifier
  - Convolutional Neural Network classifier
  - Confusion matrix & visualization
  - Performance benchmarking
