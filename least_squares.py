@@ -34,7 +34,6 @@ print(f"Weight matrix (W) shape: {W.shape}") # should be (785, 10)
 
 y_pred_raw = X_test @ W # matmul is @, so this is the test data matmul W, essentially running the least squares predictions.
 y_pred = np.argmax(y_pred_raw, axis=1) # y_pred_raw is an array of assigned probabilities, but we can only guess one number, so we pick the highest one (axis=1) using argmax.
-
 y_test_labels = np.argmax(y_test_onehot, axis=1)
 
 acc = accuracy_score(y_test_labels, y_pred)
