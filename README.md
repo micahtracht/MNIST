@@ -10,6 +10,7 @@ This project explores various different ways to classify digits on the MNIST dat
 - Least Squares classifier
 
 ## Coming soon
+ - Least squares w/o numpy/scikit
  - Convolutional Neural Network classifier
  - Confusion matrix & visualization
  - Performance benchmarking

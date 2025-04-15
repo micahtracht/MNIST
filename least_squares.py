@@ -3,6 +3,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import accuracy_score, classification_report
+from matrix import Matrix
 import time
 
 SEED = 42
@@ -25,14 +26,25 @@ X_train, X_test, y_train_onehot, y_test_onehot = train_test_split(
     X_bias, Y_onehot, test_size=0.2, random_state=SEED, stratify=y
 )
 
+
+X_train_matrix = Matrix(X_train)
+y_train_onehot_matrix = Matrix(y_train_onehot)
+X_test_matrix = Matrix(X_test)
+y_test_onehot_matrix = Matrix(y_test_onehot)
+
+print('started calculations')
 start_time = time.time()
-W, residuals, rank, s = np.linalg.lstsq(X_train, y_train_onehot, rcond=None)
+XT = X_train_matrix.transpose()
+XTX = XT.matmul(X_train_matrix)
+XTY= XT.matmul(y_train_onehot_matrix)
+XTX_inv = XTX.inverse()
+W = XTX_inv.matmul(XTY)
 end_time = time.time()
 
 print(f"Weight calculation time: {end_time - start_time:.3f} seconds")
 print(f"Weight matrix (W) shape: {W.shape}") # should be (785, 10)
 
-y_pred_raw = X_test @ W # matmul is @, so this is the test data matmul W, essentially running the least squares predictions.
+y_pred_raw = X_test_matrix.matmul(W) # matmul is @, so this is the test data matmul W, essentially running the least squares predictions.
 y_pred = np.argmax(y_pred_raw, axis=1) # y_pred_raw is an array of assigned probabilities, but we can only guess one number, so we pick the highest one (axis=1) using argmax.
 y_test_labels = np.argmax(y_test_onehot, axis=1)
 
