@@ -17,6 +17,10 @@ X = mnist.data.astype('float64') # fixes the data type to floats, ensuring no er
 y = mnist.target.astype('int64') # fixes the label types to ints, rather than something custom (or strings), so our model can learn them with least squares.
 
 X /= 255 # normalize
+
+X = X[:500]
+y = y[:500]
+
 X_bias = np.c_[np.ones((X.shape[0], 1)), X] # adds a column of ones, so that each data set has a 1 it can use as an offset. This lets the model shift its y intercept. np.c concatenates horizontally, and np.ones makes a matrix of ones according to the specified shape (in this case, X.shape[0], or num rows tall, and 1 wide, so it's a column vector.)
 
 encoder = OneHotEncoder(sparse_output=False, categories='auto')
@@ -34,17 +38,13 @@ y_test_onehot_matrix = Matrix(y_test_onehot)
 
 print('started calculations')
 start_time = time.time()
-XT = X_train_matrix.transpose()
-XTX = XT.matmul(X_train_matrix)
-XTY= XT.matmul(y_train_onehot_matrix)
-XTX_inv = XTX.inverse()
-W = XTX_inv.matmul(XTY)
+W = X_train_matrix.pseudoinverse().matmul(y_train_onehot_matrix) # Finds x dagger y
 end_time = time.time()
 
 print(f"Weight calculation time: {end_time - start_time:.3f} seconds")
-print(f"Weight matrix (W) shape: {W.shape}") # should be (785, 10)
+print(f"Weight matrix (W) shape:", W.shape) # should be (785, 10)
 
-y_pred_raw = X_test_matrix.matmul(W) # matmul is @, so this is the test data matmul W, essentially running the least squares predictions.
+y_pred_raw = X_test_matrix.matmul(W)
 y_pred = np.argmax(y_pred_raw, axis=1) # y_pred_raw is an array of assigned probabilities, but we can only guess one number, so we pick the highest one (axis=1) using argmax.
 y_test_labels = np.argmax(y_test_onehot, axis=1)
 

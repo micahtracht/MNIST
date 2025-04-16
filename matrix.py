@@ -1,3 +1,4 @@
+import numpy as np # only used for SVD.
 class Matrix:
     def __init__(self, data):
         self.data = data
@@ -56,5 +57,31 @@ class Matrix:
                 A_inverse.data[i][j] = augmented_matrix.data[i][j+n]
         return A_inverse
 
+    # One day I'll write SVD on my own. For now, let's lean on numpy a bit. (I looked into how to do this... it's hard)
+    def SVD(self, A):
+        return np.linalg.svd(A, full_matrices=True)
+
+    def pseudoinverse(self): # uses SVD to compute the Moore-penrose pseudoinverse
+        [U_arr, S_arr, VT_arr] = self.SVD(self.data)
+        U = Matrix(U_arr.tolist())
+        VT = Matrix(VT_arr.tolist())
+        
+        n = VT.rows # VT is square (nxn)
+        m = U.rows # U is square (mxm)
+        
+        tol = 1e-10
+        S_inv = [[0 for i in range(m)] for j in range(n)]
+        
+        for i, sigma in enumerate(S_arr):
+            if sigma > tol:
+                S_inv[i][i] = 1.0/sigma
+        S_inv = Matrix(S_inv)
+        
+        return VT.transpose().matmul(S_inv).matmul(U.transpose())
+    
     def __repr__(self):
         return "\n".join(str(row) for row in self.data)
+
+    def __array__(self, dtype=None):
+        arr = np.array(self.data, dtype=type)
+        return arr
