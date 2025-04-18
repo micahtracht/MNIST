@@ -1,6 +1,9 @@
 import torch
+import torch.nn as nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+import torch.optim as optim
+from CNN import SimpleCNN
 
 '''
 transform: callable function to transform the data. 
@@ -40,8 +43,12 @@ train_loader = DataLoader(
 test_loader = DataLoader(
     dataset = test_dataset,
     batch_size = 64,
-    shuffle = True,
+    shuffle = False, # false so that we get the test data in a predictable order - won't affect performance or overfitting.
     num_workers = 0,
     drop_last = False,
     pin_memory = False
 )
+
+model = SimpleCNN() # instantiate the model. It now has everything we gave it in __init__ of SimpleCNN, which includes the parent nn.Module class.
+criterion = nn.CrossEntropyLoss() # from torch.nn, measures -log(softmax likelihoods), or the distance between our answer and the true, one-hot one. Think of it like how surprised the model was.
+optimizer = optim.Adam(model.parameters(), lr = 0.001) # this uses the Adaptive Moment Estimation to compute gradients, and based on that, optimize the model. It does this scaled by a learning rate (lr=0.001), and keeps track of average gradients (exponentially decayed) to make its estimates.
