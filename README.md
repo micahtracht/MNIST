@@ -1,4 +1,7 @@
-# K-means from scratch on MNIST dataset
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Python](https://img.shields.io/badge/Python-3.11-blue.svg)
+![Dataset](https://img.shields.io/badge/Dataset-MNIST-blue.svg)
+# MNIST dataset with 3 approaches: K-means (from scratch), least-squares, and a convolutional neural network.
 This project explores various different ways to classify digits on the MNIST dataset using various algorithms.
 
  ---
